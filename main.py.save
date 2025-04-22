@@ -1,0 +1,180 @@
+import time
+import threading
+import os
+import cv2
+import numpy as np
+import face_recognition
+import hardware
+import face_recognition_utils
+import telegram_bot
+import config
+import logging
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("door_system.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Ensure required directories exist
+def setup_directories():
+    for directory in [config.KNOWN_FACES_PATH, config.UNKNOWN_FACES_PATH]:
+        os.makedirs(directory, exist_ok=True)
+    logger.info("Directories set up")
+
+def initialize_camera():
+    """Try initializing the camera with multiple attempts."""
+    for attempt in range(3):
+        camera = cv2.VideoCapture(config.CAMERA_ID)
+        camera.set(cv2.CAP_PROP_FRAME_WIDTH, config.CAMERA_WIDTH)
+        camera.set(cv2.CAP_PROP_FRAME_HEIGHT, config.CAMERA_HEIGHT)
+        
+        # Test camera functionality
+        ret, test_frame = camera.read()
+        if ret and test_frame is not None:
+            logger.info("Camera initialized successfully")
+            return camera
+        else:
+            logger.warning(f"Camera initialization attempt {attempt + 1} failed")
+            time.sleep(1)
+            if camera.isOpened():
+                camera.release()
+    
+    raise Exception("Could not open camera after multiple attempts")
+
+def process_frame(frame, database):
+    """Process a single frame for face recognition."""
+    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    face_locations = face_recognition.face_locations(rgb_frame, model="hog")
+
+    if not face_locations:
+        return None, None, None
+
+    # Select largest detected face
+    if len(face_locations) > 1:
+        face_locations = [max(face_locations, key=lambda rect: (rect[2] - rect[0]) * (rect[1] - rect[3]))]
+
+    # Extract encoding
+    face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
+    if not face_encodings:
+        return face_locations[0], None, None
+
+    face_encoding = face_encodings[0]
+    
+    # Compare with known faces
+    name = "Unknown"
+    best_match_distance = float('inf')
+
+    for person_name, known_encoding in database.items():
+        if not isinstance(known_encoding, np.ndarray):
+            logger.warning(f"Skipping invalid encoding for {person_name}")
+            continue
+
+        distances = face_recognition.face_distance([known_encoding], face_encoding)
+        if distances.size > 0:
+            face_distance = float(distances[0])
+            if face_distance < best_match_distance and face_distance < config.FACE_CONFIDENCE_THRESHOLD:
+                best_match_distance = face_distance
+                name = person_name
+
+    return face_locations[0], name, best_match_distance
+
+def main():
+    camera = None
+    try:
+        logger.info("Starting Face Recognition Door System...")
+
+        # Setup directories
+        setup_directories()
+        
+        # Load face database
+        database = face_recognition_utils.load_face_database()
+        if not database:
+            logger.warning("No face encodings found in database")
+        else:
+            logger.info(f"Loaded {len(database)} faces into database")
+        
+        # Setup hardware
+        hardware.setup_gpio()
+
+        # Initialize camera
+        camera = initialize_camera()
+
+        # Initialize Telegram bot
+        telegram_bot.initialize_bot(database)
+
+        logger.info("System initialized and ready")
+        logger.info("Press Ctrl+C to exit")
+
+        last_detection_time = 0
+        cooldown_period = 2  # Time between processing frames
+
+        while True:
+            ret, frame = camera.read()
+            if not ret or frame is None:
+                logger.error("Camera error: Failed to capture image")
+                time.sleep(1)
+                continue
+
+            # Process the frame within cooldown period
+            current_time = time.time()
+            if current_time - last_detection_time < cooldown_period:
+                time.sleep(0.1)
+                continue
+
+            face_location, name, match_distance = process_frame(frame, database)
+
+            if face_location is None:
+                logger.info("Waiting for face...")
+                time.sleep(0.2)
+                continue
+
+            last_detection_time = current_time
+
+            if name is None:
+                logger.info("Face detected but couldn't extract features")
+                continue
+
+            logger.info(f"Recognition result: {name}")
+
+            if name != "Unknown":
+                confidence = 1.0 - match_distance
+                logger.info(f"Welcome, {name}! (Confidence: {confidence:.2%})")
+                threading.Thread(target=hardware.unlock_door, args=(config.UNLOCK_DURATION,)).start()
+            else:
+                logger.info("Unknown face detected, sending alert")
+
+                # Extract face region
+                top, right, bottom, left = face_location
+                face_img = frame[top:bottom, left:right]
+
+                # Save the unknown face image
+                timestamp = int(time.time())
+                face_path = os.path.join(config.UNKNOWN_FACES_PATH, f"unknown_{timestamp}.jpg")
+                cv2.imwrite(face_path, face_img)
+
+                # Send alert with the saved face
+                threading.Thread(target=telegram_bot.send_unknown_face_alert, args=(face_path,)).start()
+
+            time.sleep(cooldown_period)
+
+    except KeyboardInterrupt:
+        logger.info("\nExiting due to user interrupt")
+    except Exception as e:
+        logger.error(f"ERROR: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
+    finally:
+        if camera and camera.isOpened():
+            camera.release()
+        hardware.cleanup()
+        telegram_bot.shutdown_bot()
+        logger.info("System shutdown complete")
+
+if __name__ == "__main__":
+    main()

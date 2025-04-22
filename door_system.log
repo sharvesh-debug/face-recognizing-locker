@@ -1,0 +1,96 @@
+2025-04-04 22:29:02,238 - INFO - Starting Face Recognition Door System...
+2025-04-04 22:29:02,239 - INFO - Directories set up
+2025-04-04 22:29:02,240 - INFO - Loaded 2 faces into database
+2025-04-04 22:29:02,488 - INFO - Camera initialized successfully
+2025-04-04 22:29:02,494 - INFO - Scheduler started
+2025-04-04 22:29:02,494 - INFO - System initialized and ready
+2025-04-04 22:29:02,496 - INFO - Press Ctrl+C to exit
+2025-04-04 22:29:05,242 - WARNING - Skipping invalid encoding for encodings
+2025-04-04 22:29:05,242 - WARNING - Skipping invalid encoding for names
+2025-04-04 22:29:05,243 - INFO - Recognition result: Unknown
+2025-04-04 22:29:05,244 - INFO - Unknown face detected, sending alert
+2025-04-04 22:29:10,013 - WARNING - Skipping invalid encoding for encodings
+2025-04-04 22:29:10,014 - WARNING - Skipping invalid encoding for names
+2025-04-04 22:29:10,015 - INFO - Recognition result: Unknown
+2025-04-04 22:29:10,015 - INFO - Unknown face detected, sending alert
+2025-04-04 22:29:14,773 - WARNING - Skipping invalid encoding for encodings
+2025-04-04 22:29:14,774 - WARNING - Skipping invalid encoding for names
+2025-04-04 22:29:14,775 - INFO - Recognition result: Unknown
+2025-04-04 22:29:14,775 - INFO - Unknown face detected, sending alert
+2025-04-04 22:29:19,505 - WARNING - Skipping invalid encoding for encodings
+2025-04-04 22:29:19,505 - WARNING - Skipping invalid encoding for names
+2025-04-04 22:29:19,506 - INFO - Recognition result: Unknown
+2025-04-04 22:29:19,507 - INFO - Unknown face detected, sending alert
+2025-04-04 22:29:24,244 - WARNING - Skipping invalid encoding for encodings
+2025-04-04 22:29:24,245 - WARNING - Skipping invalid encoding for names
+2025-04-04 22:29:24,246 - INFO - Recognition result: Unknown
+2025-04-04 22:29:24,246 - INFO - Unknown face detected, sending alert
+2025-04-04 22:29:28,981 - WARNING - Skipping invalid encoding for encodings
+2025-04-04 22:29:28,982 - WARNING - Skipping invalid encoding for names
+2025-04-04 22:29:28,983 - INFO - Recognition result: Unknown
+2025-04-04 22:29:28,984 - INFO - Unknown face detected, sending alert
+2025-04-04 22:29:33,693 - WARNING - Skipping invalid encoding for encodings
+2025-04-04 22:29:33,694 - WARNING - Skipping invalid encoding for names
+2025-04-04 22:29:33,695 - INFO - Recognition result: Unknown
+2025-04-04 22:29:33,695 - INFO - Unknown face detected, sending alert
+2025-04-04 22:29:38,166 - INFO - Waiting for face...
+2025-04-04 22:29:40,792 - INFO - Waiting for face...
+2025-04-04 22:29:43,741 - WARNING - Skipping invalid encoding for encodings
+2025-04-04 22:29:43,742 - WARNING - Skipping invalid encoding for names
+2025-04-04 22:29:43,742 - INFO - Recognition result: Unknown
+2025-04-04 22:29:43,743 - INFO - Unknown face detected, sending alert
+2025-04-04 22:29:44,873 - WARNING - Connection pool is full, discarding connection: api.telegram.org
+2025-04-04 22:29:48,528 - INFO - Waiting for face...
+2025-04-04 22:30:10,880 - INFO - Starting Face Recognition Door System...
+2025-04-04 22:30:10,881 - INFO - Directories set up
+2025-04-04 22:30:10,882 - INFO - Loaded 2 faces into database
+2025-04-04 22:30:11,113 - INFO - Camera initialized successfully
+2025-04-04 22:30:11,118 - INFO - Scheduler started
+2025-04-04 22:30:11,119 - INFO - System initialized and ready
+2025-04-04 22:30:11,120 - INFO - Press Ctrl+C to exit
+2025-04-04 22:30:13,603 - INFO - Waiting for face...
+2025-04-04 22:30:15,261 - ERROR - No error handlers are registered, logging exception.
+Traceback (most recent call last):
+  File "/home/pi/face_door_system/telegram_bot.py", line 58, in button_callback
+    query.answer()  # Acknowledge the callback
+  File "/home/pi/.local/lib/python3.9/site-packages/telegram/callbackquery.py", line 166, in answer
+    return self.bot.answer_callback_query(
+  File "/home/pi/.local/lib/python3.9/site-packages/telegram/bot.py", line 134, in decorator
+    result = func(*args, **kwargs)
+  File "/home/pi/.local/lib/python3.9/site-packages/telegram/bot.py", line 2793, in answer_callback_query
+    result = self._post('answerCallbackQuery', data, timeout=timeout, api_kwargs=api_kwargs)
+  File "/home/pi/.local/lib/python3.9/site-packages/telegram/bot.py", line 299, in _post
+    return self.request.post(
+  File "/home/pi/.local/lib/python3.9/site-packages/telegram/utils/request.py", line 361, in post
+    result = self._request_wrapper(
+  File "/home/pi/.local/lib/python3.9/site-packages/telegram/utils/request.py", line 279, in _request_wrapper
+    raise BadRequest(message)
+telegram.error.BadRequest: Query is too old and response timeout expired or query id is invalid
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/pi/.local/lib/python3.9/site-packages/telegram/ext/dispatcher.py", line 557, in process_update
+    handler.handle_update(update, self, check, context)
+  File "/home/pi/.local/lib/python3.9/site-packages/telegram/ext/handler.py", line 199, in handle_update
+    return self.callback(update, context)
+  File "/home/pi/face_door_system/telegram_bot.py", line 91, in button_callback
+    query.answer(text="An error occurred. Please try again.")
+  File "/home/pi/.local/lib/python3.9/site-packages/telegram/callbackquery.py", line 166, in answer
+    return self.bot.answer_callback_query(
+  File "/home/pi/.local/lib/python3.9/site-packages/telegram/bot.py", line 134, in decorator
+    result = func(*args, **kwargs)
+  File "/home/pi/.local/lib/python3.9/site-packages/telegram/bot.py", line 2793, in answer_callback_query
+    result = self._post('answerCallbackQuery', data, timeout=timeout, api_kwargs=api_kwargs)
+  File "/home/pi/.local/lib/python3.9/site-packages/telegram/bot.py", line 299, in _post
+    return self.request.post(
+  File "/home/pi/.local/lib/python3.9/site-packages/telegram/utils/request.py", line 361, in post
+    result = self._request_wrapper(
+  File "/home/pi/.local/lib/python3.9/site-packages/telegram/utils/request.py", line 279, in _request_wrapper
+    raise BadRequest(message)
+telegram.error.BadRequest: Query is too old and response timeout expired or query id is invalid
+2025-04-04 22:30:18,091 - INFO - Waiting for face...
+2025-04-04 22:30:22,515 - INFO - 
+Exiting due to user interrupt
+2025-04-04 22:30:22,518 - INFO - Scheduler has been shut down
+2025-04-04 22:30:23,961 - INFO - System shutdown complete
